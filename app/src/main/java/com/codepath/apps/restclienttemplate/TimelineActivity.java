@@ -22,6 +22,9 @@ public class TimelineActivity extends AppCompatActivity {
     TwitterClient client;
     RecyclerView rvTweets;
     TweetsAdapter adapter;
+    EndlessRecyclerViewScrollListener scrollListener;
+
+    List<Tweet> tweets;
 
     SwipeRefreshLayout swipeContainer;
 
@@ -30,19 +33,30 @@ public class TimelineActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_timeline);
 
+        LinearLayoutManager layoutManager = new LinearLayoutManager(this);
+
         client = TwitterApplication.getRestClient(this);
 
         // Find the recycler view
         rvTweets = findViewById(R.id.rvTimeline);
 
-        List<Tweet> tweets;
         // Init the list of tweets and adapter
         tweets = new ArrayList<>();
         adapter = new TweetsAdapter(this, tweets);
 
         // Recycler view setup: layout manager and the adapter
-        rvTweets.setLayoutManager(new LinearLayoutManager(this));
+        rvTweets.setLayoutManager(layoutManager);
         rvTweets.setAdapter(adapter);
+
+        scrollListener = new EndlessRecyclerViewScrollListener(layoutManager)
+        {
+            @Override
+            public void onLoadMore(int page, int totalItemsCount, RecyclerView view)
+            {
+                loadMoreData();
+            }
+        };
+        rvTweets.addOnScrollListener(scrollListener);
 
         populateHomeTimeline();
 
@@ -63,11 +77,38 @@ public class TimelineActivity extends AppCompatActivity {
                 android.R.color.holo_red_light);
     }
 
+    private void loadMoreData()
+    {
+        client.getNextPageOfTweets(new JsonHttpResponseHandler()
+        {
+
+            @Override
+            public void onSuccess(int statusCode, Headers headers, JSON json)
+            {
+                JSONArray jsonArray = json.jsonArray;
+
+                try
+                {
+                    adapter.addAll(Tweet.fromJsonArray(jsonArray));
+                }
+                catch (JSONException e)
+                {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onFailure(int statusCode, Headers headers, String response, Throwable throwable)
+            {
+
+            }
+        }, tweets.get(tweets.size() - 1).id);
+    }
+
     private void populateHomeTimeline()
     {
         client.getHomeTimeline(new JsonHttpResponseHandler()
         {
-
             @Override
             public void onSuccess(int statusCode, Headers headers, JSON json)
             {

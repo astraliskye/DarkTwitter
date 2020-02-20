@@ -16,8 +16,8 @@ import com.facebook.stetho.Stetho;
  *     // use client to send requests to API
  *
  */
-public class TwitterApplication extends Application {
-
+public class TwitterApplication extends Application
+{
     MyDatabase myDatabase;
 
     @Override
