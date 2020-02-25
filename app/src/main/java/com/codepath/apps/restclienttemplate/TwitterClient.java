@@ -2,6 +2,7 @@ package com.codepath.apps.restclienttemplate;
 
 import android.content.Context;
 
+import com.codepath.apps.restclienttemplate.models.Tweet;
 import com.codepath.asynchttpclient.RequestParams;
 import com.codepath.asynchttpclient.callback.JsonHttpResponseHandler;
 import com.codepath.oauth.OAuthBaseClient;
@@ -46,6 +47,7 @@ public class TwitterClient extends OAuthBaseClient {
 		String apiUrl = getApiUrl("statuses/home_timeline.json");
 		// Can specify query string params directly or through RequestParams.
 		RequestParams params = new RequestParams();
+		params.put("tweet_mode", "extended");
 		params.put("count", "25");
 		params.put("since_id", 1);
 		client.get(apiUrl, params, handler);
@@ -55,10 +57,20 @@ public class TwitterClient extends OAuthBaseClient {
 	{
 		String apiUrl = getApiUrl("statuses/home_timeline.json");
 		RequestParams params = new RequestParams();
+		params.put("tweet_mode", "extended");
 		params.put("count", "25");
 		params.put("max_id", maxId);
 
 		client.get(apiUrl, params, handler);
+	}
+
+	public void publishTweet(JsonHttpResponseHandler handler, String content)
+	{
+		String apiUrl = getApiUrl("statuses/update.json");
+		RequestParams params = new RequestParams();
+		params.put("status", content);
+		params.put("tweet_mode", "extended");
+		client.post(apiUrl, params, "", handler);
 	}
 
 	/* 1. Define the endpoint URL with getApiUrl and pass a relative path to the endpoint

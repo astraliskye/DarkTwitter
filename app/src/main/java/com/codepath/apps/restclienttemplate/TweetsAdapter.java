@@ -1,17 +1,24 @@
 package com.codepath.apps.restclienttemplate;
 
+import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
+import androidx.core.util.Pair;
 
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityOptionsCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.codepath.apps.restclienttemplate.activities.TweetDetailActivity;
 import com.codepath.apps.restclienttemplate.models.Tweet;
+
+import org.parceler.Parcels;
 
 import java.util.List;
 
@@ -57,25 +64,48 @@ public class TweetsAdapter extends RecyclerView.Adapter<TweetsAdapter.ViewHolder
     public class ViewHolder extends RecyclerView.ViewHolder
     {
         ImageView ivProfileImage;
-        TextView tvScreenName;
+        TextView tvHandle;
         TextView tvBody;
         TextView tvTimestamp;
+        TextView tvName;
 
         public ViewHolder(@NonNull View itemView)
         {
             super(itemView);
 
             ivProfileImage = itemView.findViewById(R.id.ivProfileImage);
-            tvScreenName = itemView.findViewById(R.id.tvScreenName);
+            tvHandle = itemView.findViewById(R.id.tvHandle);
             tvBody = itemView.findViewById(R.id.tvBody);
             tvTimestamp = itemView.findViewById(R.id.tvTimestamp);
+            tvName = itemView.findViewById(R.id.tvName);
         }
 
         public void bind(Tweet tweet)
         {
             tvBody.setText(tweet.body);
-            tvScreenName.setText(tweet.user.screenName);
+            tvHandle.setText("@" + tweet.user.screenName);
             tvTimestamp.setText(tweet.getFormattedTimestamp());
+            tvName.setText(tweet.user.name);
+
+            final Tweet t = tweet;
+
+            tvBody.setOnClickListener(new View.OnClickListener()
+            {
+                @Override
+                public void onClick(View view)
+                {
+                    Intent intent = new Intent(tvBody.getContext(), TweetDetailActivity.class);
+                    intent.putExtra("tweet", Parcels.wrap(t));
+
+                    // Use pairs for multiple elements (though only one is used here)
+                    Pair<View, String> p1 = Pair.create((View)ivProfileImage, "profileImage");
+
+                    // MUST use androidx.core.util.Pair;
+                    ActivityOptionsCompat options = ActivityOptionsCompat
+                            .makeSceneTransitionAnimation((Activity)ivProfileImage.getContext(), p1);
+                    tvBody.getContext().startActivity(intent, options.toBundle());
+                }
+            });
 
             Glide.with(context).load(tweet.user.profileImageUrl)
                     .into(ivProfileImage);
